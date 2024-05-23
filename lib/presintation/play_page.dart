@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:checkers_game/logic/game_table.dart';
 import 'package:checkers_game/model/block_table.dart';
 import 'package:checkers_game/model/coordinate.dart';
@@ -15,7 +13,7 @@ class PlayPage extends StatefulWidget {
   final Color? colorBackgroundHighlight = Colors.blue[500];
   final Color? colorBackgroundHighlightAfterKilling = Colors.purple[500];
 
-  PlayPage({Key? key, required this.title}) : super(key: key);
+  PlayPage({super.key, required this.title});
 
   final String title;
 
@@ -37,20 +35,10 @@ class _PlayPageState extends State<PlayPage> {
 
   void initGame() {
     modeWalking = GameTable.MODE_WALK_NORMAL;
-    log('modwalking -> $modeWalking');
+    //log('modwalking -> $modeWalking');
+
     gameTable = GameTable(countRow: 8, countCol: 8);
     gameTable.initMenOnTable();
-
-    // For test
-//    gameTable.currentPlayerTurn = 2;
-//    gameTable.addMen(Coordinate(row: 0, col: 7), player: 2, isKing: true);
-//    gameTable.addMen(Coordinate(row: 2, col: 5), player: 1);
-//    gameTable.addMen(Coordinate(row: 4, col: 5), player: 1, isKing: true);
-//    gameTable.addMen(Coordinate(row: 6, col: 5), player: 1);
-//    gameTable.addMen(Coordinate(row: 4, col: 1), player: 1, isKing: true);
-//    gameTable.addMen(Coordinate(row: 1, col: 2), player: 1);
-//    gameTable.addMen(Coordinate(row: 1, col: 4), player: 1);
-//    gameTable.addMen(Coordinate(row: 3, col: 6), player: 1);
   }
 
   @override
@@ -99,7 +87,9 @@ class _PlayPageState extends State<PlayPage> {
               ),
             ])));
   }
+  // end of drwaing
 
+  //! start of UI functions
   void initScreenSize(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
@@ -129,6 +119,7 @@ class _PlayPageState extends State<PlayPage> {
         child: Column(mainAxisSize: MainAxisSize.min, children: listCol));
   }
 
+  //todo this is a function I have to work on  moving men
   Widget buildBlockContainer(Coordinate coor) {
     BlockTable block = gameTable.getBlockTable(coor);
 
@@ -149,71 +140,64 @@ class _PlayPageState extends State<PlayPage> {
     if (block.men != null) {
       Men? men = gameTable.getBlockTable(coor).men;
 
-      menWidget = Center(
-          child: buildMenWidget(
-              player: men!.player, isKing: men.isKing!, size: blockSize));
-
-      if (men.player == gameTable.currentPlayerTurn) {
-        menWidget = Draggable<Men>(
-            feedback: menWidget,
-            childWhenDragging: Container(),
-            data: men,
-            onDragStarted: () {
-              setState(() {
-                print("walking mode = $modeWalking");
-                gameTable.highlightWalkable(men, mode: modeWalking);
-              });
-            },
-            onDragEnd: (details) {
-              setState(() {
-                gameTable.clearHighlightWalkable();
-              });
-            },
-            child: menWidget);
-      }
+      menWidget = InkWell(
+        onTap: () {
+          setState(() {
+            gameTable.movingMan = men;
+            gameTable.clearHighlightWalkable();
+            print("walking mode = $modeWalking");
+            if (men.player == gameTable.currentPlayerTurn) {
+              gameTable.highlightWalkable(men, mode: modeWalking);
+            }
+          });
+        },
+        child: Center(
+            child: buildMenWidget(
+                player: men!.player, isKing: men.isKing!, size: blockSize)),
+      );
     } else {
       menWidget = Container();
     }
 
-    if (!gameTable.hasMen(coor) && !gameTable.isBlockTypeF(coor)) {
-      return DragTarget<Men>(builder: (context, candidateData, rejectedData) {
-        return buildBlockTableContainer(colorBackground!, menWidget);
-      }, onWillAcceptWithDetails: (men) {
-        BlockTable blockTable = gameTable.getBlockTable(coor);
-        return blockTable.isHighlight || blockTable.isHighlightAfterKilling;
-      }, onAcceptWithDetails: (men) {
-        print("onAccept");
-        setState(() {
-          gameTable.moveMen(men.data, Coordinate.of(coor));
-          gameTable.checkKilled(coor);
-          if (gameTable.checkKillableMore(men.data, coor)) {
-            modeWalking = GameTable.MODE_WALK_AFTER_KILLING;
-          } else {
-            if (gameTable.isKingArea(
-                player: gameTable.currentPlayerTurn, coor: coor)) {
-              men.data.upgradeToKing();
-            }
-            modeWalking = GameTable.MODE_WALK_NORMAL;
-            gameTable.clearHighlightWalkable();
-            gameTable.togglePlayerTurn();
-          }
-        });
-      });
-    }
-
-    return buildBlockTableContainer(colorBackground!, menWidget);
+    return buildBlockTableContainer(coor, block, colorBackground!, menWidget);
   }
 
-  Widget buildBlockTableContainer(Color colorBackground, Widget menWidget) {
-    Widget containerBackground = Container(
-        width: blockSize + (blockSize * 0.1),
-        height: blockSize + (blockSize * 0.1),
-        color: colorBackground,
-        margin: const EdgeInsets.all(2),
-        child: menWidget);
+  //todo -----------
+  Widget buildBlockTableContainer(Coordinate coor, BlockTable block,
+      Color colorBackground, Widget menWidget) {
+    Widget containerBackground = InkWell(
+      onTap: () {
+        if (block.isHighlight || block.isHighlightAfterKilling) {
+          setState(() {
+            gameTable.moveMen(gameTable.movingMan, Coordinate.of(coor));
+            gameTable.checkKilled(coor);
+
+            if (gameTable.checkKillableMore(gameTable.movingMan, coor) &&
+                gameTable.getBlockTable(coor).killableMore) {
+              modeWalking = GameTable.MODE_WALK_AFTER_KILLING;
+            } else {
+              if (gameTable.isKingArea(
+                  player: gameTable.currentPlayerTurn, coor: coor)) {
+                gameTable.movingMan.upgradeToKing();
+              }
+              modeWalking = GameTable.MODE_WALK_NORMAL;
+              gameTable.clearHighlightWalkable();
+              gameTable.togglePlayerTurn();
+            }
+          });
+        }
+      },
+      child: Container(
+          width: blockSize + (blockSize * 0.1),
+          height: blockSize + (blockSize * 0.1),
+          color: colorBackground,
+          margin: const EdgeInsets.all(2),
+          child: menWidget),
+    );
     return containerBackground;
   }
 
+  // -------------------------
   Widget buildCurrentPlayerTurn() {
     return Padding(
         padding: const EdgeInsets.all(12),

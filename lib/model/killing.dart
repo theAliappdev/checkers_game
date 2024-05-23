@@ -1,4 +1,3 @@
-
 import 'package:checkers_game/model/men.dart';
 
 /// in  this repo  we get men and seee if it is killed

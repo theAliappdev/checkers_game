@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "109405596874",
+    "project_id": "checkers-88807",
+    "storage_bucket": "checkers-88807.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:109405596874:android:02a400a3884ede18e81833",
+        "android_client_info": {
+          "package_name": "com.example.checkers_game"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNGgMxfAZRN9Q5wW9CDJe3I04S1Ho2pcY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

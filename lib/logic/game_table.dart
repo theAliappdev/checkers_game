@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:checkers_game/model/block_table.dart';
 import 'package:checkers_game/model/coordinate.dart';
 import 'package:checkers_game/model/killing.dart';
@@ -23,6 +21,7 @@ class GameTable {
   int countCol = 8;
   late List<List<BlockTable>> table;
   int currentPlayerTurn = 2;
+  late Men movingMan;
 
   List<Coordinate> listTempForKingWalkCalculation = [];
 
@@ -32,6 +31,7 @@ class GameTable {
 
   init() {
     table = [];
+    movingMan = Men();
     for (int row = 0; row < countRow; row++) {
       List<BlockTable> listBlockTable = [];
       for (int col = 0; col < countCol; col++) {
@@ -139,8 +139,12 @@ class GameTable {
           Killed killed = Killed(isKilled: true, men: getBlockTable(next).men);
           getBlockTable(nextIfKilling).victim = killed;
 
+          print('Enemy Coor %%%% ${next!.row} ${next.col}');
+          print(
+              'Next If Killing >>>>>><<<<<<<<<< ${nextIfKilling!.row} ${nextIfKilling.col}');
+
           if (onKilling != null) {
-            bool isKillable = onKilling(nextIfKilling!, killed);
+            bool isKillable = onKilling(nextIfKilling, killed);
             getBlockTable(nextIfKilling).killableMore = isKillable;
           }
           return true;
@@ -240,10 +244,13 @@ class GameTable {
       currentPlayerTurn = 1;
     }
   }
+  // shotta killed function yoziladi
 
   bool checkKilled(Coordinate coor) {
     Killed killing = getBlockTable(coor).victim;
     if (killing.isKilled) {
+      print(
+          'Dead coor @@@ ${killing.men!.coordinate!.row} ${killing.men!.coordinate!.col}');
       getBlockTable(killing.men?.coordinate).men = null;
       return true;
     }
